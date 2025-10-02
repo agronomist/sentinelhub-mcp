@@ -117,11 +117,20 @@ EXAMPLE_USAGE = {
     "get_ndvi_statistics": {
         "description": "Get NDVI statistics for a specific area and time period",
         "parameters": {
-            "bbox": [13.0, 45.0, 13.5, 45.5],  # Example: Rome area
+            "bbox": [12.4, 41.8, 12.6, 42.0],  # Rome area (more precise)
             "time_from": "2023-06-01",
             "time_to": "2023-08-31",
             "evalscript": NDVI_STATISTICS_EVALSCRIPT,
-            "data_sources": [SENTINEL2_DATA_SOURCE],
+            "data_sources": [{
+                "type": "sentinel-2-l2a",
+                "dataFilter": {
+                    "timeRange": {
+                        "from": "2023-06-01T00:00:00Z",
+                        "to": "2023-08-31T23:59:59Z"
+                    },
+                    "maxCloudCoverage": 20
+                }
+            }],
             "aggregation": {
                 "timeAggregation": "P1M",  # Monthly aggregation
                 "aggregationFunction": "mean"
@@ -132,11 +141,20 @@ EXAMPLE_USAGE = {
     "get_water_mask": {
         "description": "Generate a water mask using NDWI",
         "parameters": {
-            "bbox": [13.0, 45.0, 13.5, 45.5],
+            "bbox": [12.4, 41.8, 12.6, 42.0],  # Rome area
             "time_from": "2023-07-01",
             "time_to": "2023-07-31",
             "evalscript": NDWI_EVALSCRIPT,
-            "data_sources": [SENTINEL2_DATA_SOURCE],
+            "data_sources": [{
+                "type": "sentinel-2-l2a",
+                "dataFilter": {
+                    "timeRange": {
+                        "from": "2023-07-01T00:00:00Z",
+                        "to": "2023-07-31T23:59:59Z"
+                    },
+                    "maxCloudCoverage": 30
+                }
+            }],
             "width": 512,
             "height": 512
         }
@@ -145,11 +163,20 @@ EXAMPLE_USAGE = {
     "get_true_color_image": {
         "description": "Generate a true color RGB image",
         "parameters": {
-            "bbox": [13.0, 45.0, 13.5, 45.5],
+            "bbox": [12.4, 41.8, 12.6, 42.0],  # Rome area
             "time_from": "2023-07-15",
             "time_to": "2023-07-15",
             "evalscript": TRUE_COLOR_EVALSCRIPT,
-            "data_sources": [SENTINEL2_DATA_SOURCE],
+            "data_sources": [{
+                "type": "sentinel-2-l2a",
+                "dataFilter": {
+                    "timeRange": {
+                        "from": "2023-07-15T00:00:00Z",
+                        "to": "2023-07-15T23:59:59Z"
+                    },
+                    "maxCloudCoverage": 10
+                }
+            }],
             "width": 1024,
             "height": 1024
         }

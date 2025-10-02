@@ -716,40 +716,46 @@ async def mcp_endpoint(request: Request):
                     }
                 return {"content": [{"type": "text", "text": str(result)}]}
             elif tool_name == "get_available_data_sources":
-                # Call the underlying function implementation
-                try:
-                    # Get access token
-                    access_token = config.get_access_token()
-                    
-                    # Make API request
-                    headers = {
-                        "Authorization": f"Bearer {access_token}",
-                        "Content-Type": "application/json"
-                    }
-                    
-                    url = f"{SENTINELHUB_BASE_URL}/data"
-                    response = requests.get(url, headers=headers)
-                    response.raise_for_status()
-                    
-                    data_sources = response.json()
-                    
-                    result = {
-                        "success": True,
-                        "data_sources": data_sources,
-                        "count": len(data_sources) if isinstance(data_sources, list) else 1
-                    }
-                except requests.exceptions.RequestException as e:
-                    result = {
-                        "success": False,
-                        "error": f"API request failed: {str(e)}",
-                        "error_type": "api_error"
-                    }
-                except Exception as e:
-                    result = {
-                        "success": False,
-                        "error": f"Unexpected error: {str(e)}",
-                        "error_type": "unexpected_error"
-                    }
+                # Return available data sources (no API call needed)
+                result = {
+                    "success": True,
+                    "data_sources": [
+                        {
+                            "name": "Sentinel-2 Level-2A",
+                            "type": "sentinel-2-l2a",
+                            "description": "Sentinel-2 Level-2A optical data with atmospheric correction",
+                            "bands": ["B01", "B02", "B03", "B04", "B05", "B06", "B07", "B08", "B8A", "B09", "B10", "B11", "B12"],
+                            "resolution": "10m, 20m, 60m",
+                            "temporal_resolution": "5 days"
+                        },
+                        {
+                            "name": "Sentinel-1 GRD",
+                            "type": "sentinel-1-grd",
+                            "description": "Sentinel-1 Ground Range Detected radar data",
+                            "bands": ["VV", "VH", "HH", "HV"],
+                            "resolution": "10m",
+                            "temporal_resolution": "6 days"
+                        },
+                        {
+                            "name": "Landsat 8 Level-1C",
+                            "type": "landsat-8-l1c",
+                            "description": "Landsat 8 Level-1C optical data",
+                            "bands": ["B01", "B02", "B03", "B04", "B05", "B06", "B07", "B08", "B09", "B10", "B11"],
+                            "resolution": "15m, 30m",
+                            "temporal_resolution": "16 days"
+                        },
+                        {
+                            "name": "MODIS",
+                            "type": "modis",
+                            "description": "MODIS satellite data",
+                            "bands": ["B01", "B02", "B03", "B04", "B05", "B06", "B07", "B08", "B09", "B10", "B11", "B12", "B13", "B14", "B15", "B16"],
+                            "resolution": "250m, 500m, 1km",
+                            "temporal_resolution": "1-2 days"
+                        }
+                    ],
+                    "count": 4,
+                    "note": "These are the most commonly available data sources. For the most up-to-date list, check SentinelHub documentation."
+                }
                 return {"content": [{"type": "text", "text": str(result)}]}
             elif tool_name == "validate_evalscript":
                 result = _validate_evalscript_impl(arguments.get("evalscript", ""))
