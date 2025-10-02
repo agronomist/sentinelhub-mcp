@@ -93,13 +93,10 @@ function setup() {
 }
 
 function evaluatePixel(samples) {
-  if (samples.dataMask === 0) {
-    return {
-      ndvi: [NaN],
-      dataMask: [0]
-    };
-  }
+  // Calculate NDVI
   let ndvi = (samples.B08 - samples.B04) / (samples.B08 + samples.B04);
+  
+  // Return both NDVI and dataMask (pass through the input dataMask)
   return {
     ndvi: [ndvi],
     dataMask: [samples.dataMask]
