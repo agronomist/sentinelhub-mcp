@@ -567,28 +567,31 @@ async def mcp_endpoint(request: Request):
                     # Prepare request payload according to SentinelHub API spec
                     payload = {
                         "input": {
-                            "bounds": {
-                                "bbox": bbox if bbox else None,
-                                "geometry": geometry if geometry else None
-                            },
+                            "bounds": {},
                             "data": data_sources
                         },
-                        "evalscript": evalscript,
                         "aggregation": {
                             "timeRange": {
                                 "from": time_from,
                                 "to": time_to
                             },
-                            "aggregationFunction": arguments.get("aggregation", {}).get("aggregationFunction", "mean"),
-                            "timeAggregation": arguments.get("aggregation", {}).get("timeAggregation", "P1M")
+                            "evalscript": evalscript,
+                            "resx": 10,
+                            "resy": 10
                         }
                     }
                     
-                    # Remove None values
-                    if payload["input"]["bounds"]["bbox"] is None:
-                        del payload["input"]["bounds"]["bbox"]
-                    if payload["input"]["bounds"]["geometry"] is None:
-                        del payload["input"]["bounds"]["geometry"]
+                    # Add bounds (bbox or geometry)
+                    if bbox:
+                        payload["input"]["bounds"]["bbox"] = bbox
+                    elif geometry:
+                        payload["input"]["bounds"]["geometry"] = geometry
+                    
+                    # Add aggregation interval if specified
+                    if arguments.get("aggregation", {}).get("timeAggregation"):
+                        payload["aggregation"]["aggregationInterval"] = {
+                            "of": arguments.get("aggregation", {}).get("timeAggregation")
+                        }
                     
                     # Get access token
                     access_token = config.get_access_token()

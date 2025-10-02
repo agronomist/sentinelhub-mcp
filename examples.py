@@ -75,25 +75,34 @@ NDVI_STATISTICS_EVALSCRIPT = """
 //VERSION=3
 function setup() {
   return {
-    input: ["B04", "B08", "dataMask"],
-    output: { 
-      bands: 1, 
-      sampleType: "FLOAT32"
-    }
+    input: [{
+      bands: ["B04", "B08", "dataMask"]
+    }],
+    output: [
+      {
+        id: "ndvi",
+        bands: 1,
+        sampleType: "FLOAT32"
+      },
+      {
+        id: "dataMask",
+        bands: 1
+      }
+    ]
   };
 }
 
-function evaluatePixel(sample) {
-  if (sample.dataMask === 0) {
+function evaluatePixel(samples) {
+  if (samples.dataMask === 0) {
     return {
       ndvi: [NaN],
       dataMask: [0]
     };
   }
-  let ndvi = (sample.B08 - sample.B04) / (sample.B08 + sample.B04);
+  let ndvi = (samples.B08 - samples.B04) / (samples.B08 + samples.B04);
   return {
     ndvi: [ndvi],
-    dataMask: [1]
+    dataMask: [samples.dataMask]
   };
 }
 """

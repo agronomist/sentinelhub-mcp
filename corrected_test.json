@@ -1,0 +1,27 @@
+{
+  "method": "tools/call",
+  "params": {
+    "name": "get_satellite_statistics",
+    "arguments": {
+      "bbox": [12.4, 41.8, 12.6, 42.0],
+      "time_from": "2023-06-01",
+      "time_to": "2023-08-31",
+      "evalscript": "//VERSION=3\nfunction setup() {\n  return {\n    input: [{\n      bands: [\"B04\", \"B08\", \"dataMask\"]\n    }],\n    output: [\n      {\n        id: \"ndvi\",\n        bands: 1,\n        sampleType: \"FLOAT32\"\n      },\n      {\n        id: \"dataMask\",\n        bands: 1\n      }\n    ]\n  };\n}\n\nfunction evaluatePixel(samples) {\n  if (samples.dataMask === 0) {\n    return {\n      ndvi: [NaN],\n      dataMask: [0]\n    };\n  }\n  let ndvi = (samples.B08 - samples.B04) / (samples.B08 + samples.B04);\n  return {\n    ndvi: [ndvi],\n    dataMask: [samples.dataMask]\n  };\n}",
+      "data_sources": [
+        {
+          "type": "sentinel-2-l2a",
+          "dataFilter": {
+            "timeRange": {
+              "from": "2023-06-01T00:00:00Z",
+              "to": "2023-08-31T23:59:59Z"
+            },
+            "maxCloudCoverage": 20
+          }
+        }
+      ],
+      "aggregation": {
+        "timeAggregation": "P1M"
+      }
+    }
+  }
+}
