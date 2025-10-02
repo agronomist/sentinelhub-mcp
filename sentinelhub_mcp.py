@@ -53,7 +53,7 @@ class SentinelHubConfig:
     def get_access_token(self) -> str:
         """Get or refresh access token for SentinelHub API"""
         if (self.access_token and self.token_expires_at and 
-            datetime.now() < self.token_expires_at):
+            datetime.now().timestamp() < self.token_expires_at):
             return self.access_token
         
         if not self.client_id or not self.client_secret:
