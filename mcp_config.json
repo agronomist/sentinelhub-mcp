@@ -1,0 +1,20 @@
+{
+  "mcpServers": {
+    "sentinelhub-local": {
+      "command": "python",
+      "args": ["sentinelhub_mcp.py"],
+      "env": {
+        "SENTINELHUB_CLIENT_ID": "${SENTINELHUB_CLIENT_ID}",
+        "SENTINELHUB_CLIENT_SECRET": "${SENTINELHUB_CLIENT_SECRET}"
+      }
+    },
+    "sentinelhub-railway": {
+      "command": "npx",
+      "args": [
+        "@modelcontextprotocol/server-fetch",
+        "https://your-app-name.railway.app"
+      ],
+      "env": {}
+    }
+  }
+}
