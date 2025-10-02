@@ -16,7 +16,7 @@ import requests
 from fastmcp import FastMCP
 from pydantic import BaseModel, Field
 from dotenv import load_dotenv
-from fastapi import FastAPI, HTTPException
+from fastapi import FastAPI, HTTPException, Request
 from fastapi.responses import HTMLResponse
 import uvicorn
 
@@ -472,11 +472,12 @@ def validate_evalscript(evalscript: str) -> Dict[str, Any]:
 
 # MCP Protocol endpoints
 @web_app.post("/mcp")
-async def mcp_endpoint(request: dict):
+async def mcp_endpoint(request: Request):
     """Handle MCP protocol requests"""
     try:
-        method = request.get("method")
-        params = request.get("params", {})
+        body = await request.json()
+        method = body.get("method")
+        params = body.get("params", {})
         
         if method == "tools/list":
             return {
