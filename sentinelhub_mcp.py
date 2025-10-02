@@ -470,6 +470,118 @@ def validate_evalscript(evalscript: str) -> Dict[str, Any]:
     """
     return _validate_evalscript_impl(evalscript)
 
+# MCP Protocol endpoints
+@web_app.post("/mcp")
+async def mcp_endpoint(request: dict):
+    """Handle MCP protocol requests"""
+    try:
+        method = request.get("method")
+        params = request.get("params", {})
+        
+        if method == "tools/list":
+            return {
+                "tools": [
+                    {
+                        "name": "get_satellite_statistics",
+                        "description": "Get statistical data from satellite imagery using SentinelHub's Statistical API",
+                        "inputSchema": {
+                            "type": "object",
+                            "properties": {
+                                "geometry": {"type": "object", "description": "GeoJSON geometry for area of interest"},
+                                "bbox": {"type": "array", "description": "Bounding box as [minX, minY, maxX, maxY]"},
+                                "time_from": {"type": "string", "description": "Start date in ISO format"},
+                                "time_to": {"type": "string", "description": "End date in ISO format"},
+                                "evalscript": {"type": "string", "description": "JavaScript code for data processing"},
+                                "data_sources": {"type": "array", "description": "List of data source specifications"},
+                                "aggregation": {"type": "object", "description": "Aggregation parameters"},
+                                "calculations": {"type": "object", "description": "Calculation parameters"}
+                            },
+                            "required": ["time_from", "time_to", "evalscript", "data_sources"]
+                        }
+                    },
+                    {
+                        "name": "process_satellite_imagery",
+                        "description": "Generate processed images from satellite data using SentinelHub's Processing API",
+                        "inputSchema": {
+                            "type": "object",
+                            "properties": {
+                                "geometry": {"type": "object", "description": "GeoJSON geometry for area of interest"},
+                                "bbox": {"type": "array", "description": "Bounding box as [minX, minY, maxX, maxY]"},
+                                "time_from": {"type": "string", "description": "Start date in ISO format"},
+                                "time_to": {"type": "string", "description": "End date in ISO format"},
+                                "evalscript": {"type": "string", "description": "JavaScript code for data processing"},
+                                "data_sources": {"type": "array", "description": "List of data source specifications"},
+                                "width": {"type": "integer", "description": "Output image width"},
+                                "height": {"type": "integer", "description": "Output image height"},
+                                "output_format": {"type": "string", "description": "Output format"}
+                            },
+                            "required": ["time_from", "time_to", "evalscript", "data_sources"]
+                        }
+                    },
+                    {
+                        "name": "get_available_data_sources",
+                        "description": "Get information about available data sources in SentinelHub",
+                        "inputSchema": {
+                            "type": "object",
+                            "properties": {}
+                        }
+                    },
+                    {
+                        "name": "validate_evalscript",
+                        "description": "Validate an EVALSCRIPT for SentinelHub processing",
+                        "inputSchema": {
+                            "type": "object",
+                            "properties": {
+                                "evalscript": {"type": "string", "description": "JavaScript code to validate"}
+                            },
+                            "required": ["evalscript"]
+                        }
+                    }
+                ]
+            }
+        elif method == "tools/call":
+            tool_name = params.get("name")
+            arguments = params.get("arguments", {})
+            
+            if tool_name == "get_satellite_statistics":
+                result = get_satellite_statistics(
+                    geometry=arguments.get("geometry"),
+                    bbox=arguments.get("bbox"),
+                    time_from=arguments.get("time_from"),
+                    time_to=arguments.get("time_to"),
+                    evalscript=arguments.get("evalscript"),
+                    data_sources=arguments.get("data_sources"),
+                    aggregation=arguments.get("aggregation"),
+                    calculations=arguments.get("calculations")
+                )
+                return {"content": [{"type": "text", "text": str(result)}]}
+            elif tool_name == "process_satellite_imagery":
+                result = process_satellite_imagery(
+                    geometry=arguments.get("geometry"),
+                    bbox=arguments.get("bbox"),
+                    time_from=arguments.get("time_from"),
+                    time_to=arguments.get("time_to"),
+                    evalscript=arguments.get("evalscript"),
+                    data_sources=arguments.get("data_sources"),
+                    width=arguments.get("width"),
+                    height=arguments.get("height"),
+                    output_format=arguments.get("output_format")
+                )
+                return {"content": [{"type": "text", "text": str(result)}]}
+            elif tool_name == "get_available_data_sources":
+                result = get_available_data_sources()
+                return {"content": [{"type": "text", "text": str(result)}]}
+            elif tool_name == "validate_evalscript":
+                result = validate_evalscript(arguments.get("evalscript", ""))
+                return {"content": [{"type": "text", "text": str(result)}]}
+            else:
+                return {"error": f"Unknown tool: {tool_name}"}
+        else:
+            return {"error": f"Unknown method: {method}"}
+            
+    except Exception as e:
+        return {"error": str(e)}
+
 # Web interface endpoints
 @web_app.get("/health")
 async def health_check():
