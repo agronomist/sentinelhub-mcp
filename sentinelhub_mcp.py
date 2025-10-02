@@ -603,7 +603,18 @@ async def mcp_endpoint(request: Request):
                     }
                     
                     url = f"{SENTINELHUB_BASE_URL}/statistics"
+                    
+                    # Debug: Log the request payload
+                    print(f"DEBUG: Request URL: {url}")
+                    print(f"DEBUG: Request payload: {json.dumps(payload, indent=2)}")
+                    
                     response = requests.post(url, json=payload, headers=headers)
+                    
+                    # Debug: Log response details
+                    print(f"DEBUG: Response status: {response.status_code}")
+                    print(f"DEBUG: Response headers: {dict(response.headers)}")
+                    print(f"DEBUG: Response text: {response.text}")
+                    
                     response.raise_for_status()
                     
                     result_data = response.json()
