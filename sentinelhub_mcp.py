@@ -545,35 +545,214 @@ async def mcp_endpoint(request: Request):
             arguments = params.get("arguments", {})
             
             if tool_name == "get_satellite_statistics":
-                result = get_satellite_statistics(
-                    geometry=arguments.get("geometry"),
-                    bbox=arguments.get("bbox"),
-                    time_from=arguments.get("time_from"),
-                    time_to=arguments.get("time_to"),
-                    evalscript=arguments.get("evalscript"),
-                    data_sources=arguments.get("data_sources"),
-                    aggregation=arguments.get("aggregation"),
-                    calculations=arguments.get("calculations")
-                )
+                # Call the underlying function implementation
+                try:
+                    # Validate required parameters
+                    time_from = arguments.get("time_from")
+                    time_to = arguments.get("time_to")
+                    evalscript = arguments.get("evalscript")
+                    data_sources = arguments.get("data_sources")
+                    geometry = arguments.get("geometry")
+                    bbox = arguments.get("bbox")
+                    
+                    if not time_from or not time_to:
+                        raise ValueError("time_from and time_to are required")
+                    if not evalscript:
+                        raise ValueError("evalscript is required")
+                    if not data_sources:
+                        raise ValueError("data_sources are required")
+                    if not geometry and not bbox:
+                        raise ValueError("Either geometry or bbox must be provided")
+                    
+                    # Prepare request payload
+                    payload = {
+                        "time": {
+                            "from": time_from,
+                            "to": time_to
+                        },
+                        "evalscript": evalscript,
+                        "data": data_sources
+                    }
+                    
+                    # Add geometry or bbox
+                    if geometry:
+                        payload["geometry"] = geometry
+                    elif bbox:
+                        payload["bbox"] = bbox
+                    
+                    # Add optional parameters
+                    if arguments.get("aggregation"):
+                        payload["aggregation"] = arguments.get("aggregation")
+                    if arguments.get("calculations"):
+                        payload["calculations"] = arguments.get("calculations")
+                    
+                    # Get access token
+                    access_token = config.get_access_token()
+                    
+                    # Make API request
+                    headers = {
+                        "Authorization": f"Bearer {access_token}",
+                        "Content-Type": "application/json"
+                    }
+                    
+                    url = f"{SENTINELHUB_BASE_URL}/statistics"
+                    response = requests.post(url, json=payload, headers=headers)
+                    response.raise_for_status()
+                    
+                    result_data = response.json()
+                    result = {
+                        "success": True,
+                        "data": result_data,
+                        "request_info": {
+                            "time_range": f"{time_from} to {time_to}",
+                            "data_sources": len(data_sources),
+                            "has_geometry": geometry is not None,
+                            "has_bbox": bbox is not None
+                        }
+                    }
+                except Exception as e:
+                    result = {
+                        "success": False,
+                        "error": f"Error: {str(e)}",
+                        "error_type": "api_error"
+                    }
                 return {"content": [{"type": "text", "text": str(result)}]}
             elif tool_name == "process_satellite_imagery":
-                result = process_satellite_imagery(
-                    geometry=arguments.get("geometry"),
-                    bbox=arguments.get("bbox"),
-                    time_from=arguments.get("time_from"),
-                    time_to=arguments.get("time_to"),
-                    evalscript=arguments.get("evalscript"),
-                    data_sources=arguments.get("data_sources"),
-                    width=arguments.get("width"),
-                    height=arguments.get("height"),
-                    output_format=arguments.get("output_format")
-                )
+                # Call the underlying function implementation
+                try:
+                    # Validate required parameters
+                    time_from = arguments.get("time_from")
+                    time_to = arguments.get("time_to")
+                    evalscript = arguments.get("evalscript")
+                    data_sources = arguments.get("data_sources")
+                    geometry = arguments.get("geometry")
+                    bbox = arguments.get("bbox")
+                    
+                    if not time_from or not time_to:
+                        raise ValueError("time_from and time_to are required")
+                    if not evalscript:
+                        raise ValueError("evalscript is required")
+                    if not data_sources:
+                        raise ValueError("data_sources are required")
+                    if not geometry and not bbox:
+                        raise ValueError("Either geometry or bbox must be provided")
+                    
+                    # Prepare request payload
+                    payload = {
+                        "time": {
+                            "from": time_from,
+                            "to": time_to
+                        },
+                        "evalscript": evalscript,
+                        "data": data_sources,
+                        "format": arguments.get("output_format", "image/png")
+                    }
+                    
+                    # Add geometry or bbox
+                    if geometry:
+                        payload["geometry"] = geometry
+                    elif bbox:
+                        payload["bbox"] = bbox
+                    
+                    # Add optional parameters
+                    if arguments.get("width"):
+                        payload["width"] = arguments.get("width")
+                    if arguments.get("height"):
+                        payload["height"] = arguments.get("height")
+                    
+                    # Get access token
+                    access_token = config.get_access_token()
+                    
+                    # Make API request
+                    headers = {
+                        "Authorization": f"Bearer {access_token}",
+                        "Content-Type": "application/json"
+                    }
+                    
+                    url = f"{SENTINELHUB_BASE_URL}/process"
+                    response = requests.post(url, json=payload, headers=headers)
+                    response.raise_for_status()
+                    
+                    # Handle different response types
+                    content_type = response.headers.get('content-type', '')
+                    
+                    if 'image/' in content_type:
+                        # Image response - return base64 encoded data
+                        import base64
+                        image_data = base64.b64encode(response.content).decode('utf-8')
+                        result = {
+                            "success": True,
+                            "image_data": image_data,
+                            "content_type": content_type,
+                            "size_bytes": len(response.content),
+                            "request_info": {
+                                "time_range": f"{time_from} to {time_to}",
+                                "data_sources": len(data_sources),
+                                "has_geometry": geometry is not None,
+                                "has_bbox": bbox is not None,
+                                "output_format": arguments.get("output_format", "image/png")
+                            }
+                        }
+                    else:
+                        # JSON response
+                        result_data = response.json()
+                        result = {
+                            "success": True,
+                            "data": result_data,
+                            "content_type": content_type,
+                            "request_info": {
+                                "time_range": f"{time_from} to {time_to}",
+                                "data_sources": len(data_sources),
+                                "has_geometry": geometry is not None,
+                                "has_bbox": bbox is not None,
+                                "output_format": arguments.get("output_format", "image/png")
+                            }
+                        }
+                except Exception as e:
+                    result = {
+                        "success": False,
+                        "error": f"Error: {str(e)}",
+                        "error_type": "api_error"
+                    }
                 return {"content": [{"type": "text", "text": str(result)}]}
             elif tool_name == "get_available_data_sources":
-                result = get_available_data_sources()
+                # Call the underlying function implementation
+                try:
+                    # Get access token
+                    access_token = config.get_access_token()
+                    
+                    # Make API request
+                    headers = {
+                        "Authorization": f"Bearer {access_token}",
+                        "Content-Type": "application/json"
+                    }
+                    
+                    url = f"{SENTINELHUB_BASE_URL}/data"
+                    response = requests.get(url, headers=headers)
+                    response.raise_for_status()
+                    
+                    data_sources = response.json()
+                    
+                    result = {
+                        "success": True,
+                        "data_sources": data_sources,
+                        "count": len(data_sources) if isinstance(data_sources, list) else 1
+                    }
+                except requests.exceptions.RequestException as e:
+                    result = {
+                        "success": False,
+                        "error": f"API request failed: {str(e)}",
+                        "error_type": "api_error"
+                    }
+                except Exception as e:
+                    result = {
+                        "success": False,
+                        "error": f"Unexpected error: {str(e)}",
+                        "error_type": "unexpected_error"
+                    }
                 return {"content": [{"type": "text", "text": str(result)}]}
             elif tool_name == "validate_evalscript":
-                result = validate_evalscript(arguments.get("evalscript", ""))
+                result = _validate_evalscript_impl(arguments.get("evalscript", ""))
                 return {"content": [{"type": "text", "text": str(result)}]}
             else:
                 return {"error": f"Unknown tool: {tool_name}"}
