@@ -564,27 +564,31 @@ async def mcp_endpoint(request: Request):
                     if not geometry and not bbox:
                         raise ValueError("Either geometry or bbox must be provided")
                     
-                    # Prepare request payload
+                    # Prepare request payload according to SentinelHub API spec
                     payload = {
-                        "time": {
-                            "from": time_from,
-                            "to": time_to
+                        "input": {
+                            "bounds": {
+                                "bbox": bbox if bbox else None,
+                                "geometry": geometry if geometry else None
+                            },
+                            "data": data_sources
                         },
                         "evalscript": evalscript,
-                        "data": data_sources
+                        "aggregation": {
+                            "timeRange": {
+                                "from": time_from,
+                                "to": time_to
+                            },
+                            "aggregationFunction": arguments.get("aggregation", {}).get("aggregationFunction", "mean"),
+                            "timeAggregation": arguments.get("aggregation", {}).get("timeAggregation", "P1M")
+                        }
                     }
                     
-                    # Add geometry or bbox
-                    if geometry:
-                        payload["geometry"] = geometry
-                    elif bbox:
-                        payload["bbox"] = bbox
-                    
-                    # Add optional parameters
-                    if arguments.get("aggregation"):
-                        payload["aggregation"] = arguments.get("aggregation")
-                    if arguments.get("calculations"):
-                        payload["calculations"] = arguments.get("calculations")
+                    # Remove None values
+                    if payload["input"]["bounds"]["bbox"] is None:
+                        del payload["input"]["bounds"]["bbox"]
+                    if payload["input"]["bounds"]["geometry"] is None:
+                        del payload["input"]["bounds"]["geometry"]
                     
                     # Get access token
                     access_token = config.get_access_token()

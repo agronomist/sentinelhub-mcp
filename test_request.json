@@ -1,0 +1,28 @@
+{
+  "method": "tools/call",
+  "params": {
+    "name": "get_satellite_statistics",
+    "arguments": {
+      "bbox": [12.4, 41.8, 12.6, 42.0],
+      "time_from": "2023-06-01",
+      "time_to": "2023-08-31",
+      "evalscript": "//VERSION=3\nfunction setup() { return { input: ['B04', 'B08', 'dataMask'], output: { bands: 1, sampleType: 'FLOAT32' } }; }\nfunction evaluatePixel(sample) { if (sample.dataMask === 0) { return { ndvi: [NaN], dataMask: [0] }; } let ndvi = (sample.B08 - sample.B04) / (sample.B08 + sample.B04); return { ndvi: [ndvi], dataMask: [1] }; }",
+      "data_sources": [
+        {
+          "type": "sentinel-2-l2a",
+          "dataFilter": {
+            "timeRange": {
+              "from": "2023-06-01T00:00:00Z",
+              "to": "2023-08-31T23:59:59Z"
+            },
+            "maxCloudCoverage": 20
+          }
+        }
+      ],
+      "aggregation": {
+        "timeAggregation": "P1M",
+        "aggregationFunction": "mean"
+      }
+    }
+  }
+}

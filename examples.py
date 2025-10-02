@@ -76,16 +76,25 @@ NDVI_STATISTICS_EVALSCRIPT = """
 function setup() {
   return {
     input: ["B04", "B08", "dataMask"],
-    output: { bands: 1, sampleType: "FLOAT32" }
+    output: { 
+      bands: 1, 
+      sampleType: "FLOAT32"
+    }
   };
 }
 
 function evaluatePixel(sample) {
   if (sample.dataMask === 0) {
-    return [NaN];
+    return {
+      ndvi: [NaN],
+      dataMask: [0]
+    };
   }
   let ndvi = (sample.B08 - sample.B04) / (sample.B08 + sample.B04);
-  return [ndvi];
+  return {
+    ndvi: [ndvi],
+    dataMask: [1]
+  };
 }
 """
 
